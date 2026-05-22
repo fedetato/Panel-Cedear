@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel CEDEARs</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0a;
+  --surface:#131313;
+  --surface2:#1a1a1a;
+  --border:#222;
+  --border2:#2e2e2e;
+  --text:#f0f0f0;
+  --muted:#555;
+  --muted2:#888;
+  --up:#1db87a;
+  --up-bg:#071a10;
+  --down:#e05a30;
+  --down-bg:#1a0800;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding:1.5rem 1rem 3rem;}
+.wrap{max-width:900px;margin:0 auto;}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.75rem;}
+.title{font-size:22px;font-weight:700;letter-spacing:-.02em;}
+.subtitle{font-size:12px;color:var(--muted2);margin-top:3px;}
+.refresh-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 14px;font-size:12px;font-family:'Syne',sans-serif;cursor:pointer;color:var(--muted2);transition:all .2s;letter-spacing:.03em;}
+.refresh-btn:hover{color:var(--text);border-color:#444;}
+.refresh-btn.loading{opacity:.3;pointer-events:none;}
+
+/* SWITCH */
+.switch-wrap{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:1.75rem;}
+.switch-label{font-size:14px;font-weight:600;letter-spacing:.04em;color:var(--muted);transition:color .2s;cursor:pointer;}
+.switch-label.active{color:var(--text);}
+.switch{position:relative;width:52px;height:28px;cursor:pointer;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border2);border-radius:28px;transition:.3s;}
+.slider:before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+.switch input:checked + .slider{background:#1db87a22;border-color:#1db87a55;}
+.switch input:checked + .slider:before{transform:translateX(24px);background:var(--up);}
+
+/* RESUMEN */
+.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}
+.res-card{border-radius:10px;padding:.875rem 1rem;border:1px solid var(--border);}
+.res-card.up{background:var(--up-bg);border-color:#0f3d2a;}
+.res-card.down{background:var(--down-bg);border-color:#3d1a0a;}
+.res-card.neutral{background:var(--surface);border-color:var(--border);}
+.res-label{font-size:10px;font-weight:700;letter-spacing:.08em;margin-bottom:6px;}
+.res-card.up .res-label{color:var(--up);}
+.res-card.down .res-label{color:var(--down);}
+.res-card.neutral .res-label{color:var(--muted2);}
+.res-num{font-size:28px;font-weight:700;font-family:'DM Mono',monospace;}
+.res-card.up .res-num{color:var(--up);}
+.res-card.down .res-num{color:var(--down);}
+.res-card.neutral .res-num{color:var(--text);}
+
+/* TABLA */
+.table-wrap{overflow-x:auto;margin-bottom:2.5rem;border:1px solid var(--border);border-radius:12px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border2);}
+th{padding:10px 12px;text-align:right;font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--muted2);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12.5px;color:var(--muted2);white-space:nowrap;}
+td:first-child{text-align:left;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface);}
+
+.badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:20px;border-radius:5px;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;}
+.badge.up{background:var(--up-bg);color:var(--up);border:1px solid #0f3d2a;}
+.badge.down{background:var(--down-bg);color:var(--down);border:1px solid #3d1a0a;}
+
+.up-text{color:var(--up);}
+.down-text{color:var(--down);}
+.neutral-text{color:var(--muted2);}
+
+/* SECCIÓN TÍTULO */
+.sec-header{display:flex;align-items:center;gap:10px;margin-bottom:.875rem;}
+.sec-title{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted2);}
+.sec-title span{color:var(--text);}
+.sec-line{flex:1;height:1px;background:var(--border);}
+
+/* SKELETON */
+.sk{background:var(--surface2);border-radius:3px;animation:pulse 1.2s ease-in-out infinite;display:inline-block;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+.ts{font-size:11px;color:var(--muted);text-align:center;margin-top:1.5rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="title">Panel CEDEARs</div>
+      <div class="subtitle" id="last-update">Cargando...</div>
+    </div>
+    <button class="refresh-btn" id="refresh-btn" onclick="cargar()">↻ Actualizar</button>
+  </div>
+
+  <!-- SWITCH -->
+  <div class="switch-wrap">
+    <span class="switch-label active" id="label-fede" onclick="setSwitch(false)">FEDE</span>
+    <label class="switch">
+      <input type="checkbox" id="switch-input" onchange="setSwitch(this.checked)">
+      <span class="slider"></span>
+    </label>
+    <span class="switch-label" id="label-raul" onclick="setSwitch(true)">RAUL</span>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="resumen" id="resumen"></div>
+
+  <!-- TABLA PRINCIPAL -->
+  <div class="sec-header">
+    <div class="sec-title">CARTERA <span id="cartera-nombre">FEDE</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="table-wrap" id="tabla-principal"></div>
+
+  <!-- OPORTUNIDADES -->
+  <div class="sec-header" style="margin-top:2rem;">
+    <div class="sec-title">OPORTUNIDADES <span style="color:var(--muted2);">· OPort2</span></div>
+    <div class="sec-line"></div>
+  </div>
+  <div class="table-wrap" id="tabla-oport"></div>
+
+  <div class="ts" id="ts"></div>
+</div>
+
+<script>
+const UMBRAL = 2;
+
+const CARTERAS = {
+  fede: ['AAPL','MSFT','GOOGL','AMZN','META','TSLA','NVDA','JPM','KO'],
+  raul: ['AAPL','BABA','DIS','MELI','GLOB','PBR','XOM','WMT'],
+  oport: ['NFLX','PYPL','INTC','AMD','SNAP','UBER','LYFT','SQ','COIN','HOOD','PLTR','RIVN','LCID','NIO','F']
+};
+
+let datos = { fede: [], raul: [], oport: [] };
+let tabActivo = 'fede';
+
+function setSwitch(isRaul) {
+  document.getElementById('switch-input').checked = isRaul;
+  document.getElementById('label-fede').classList.toggle('active', !isRaul);
+  document.getElementById('label-raul').classList.toggle('active', isRaul);
+  document.getElementById('cartera-nombre').textContent = isRaul ? 'RAUL' : 'FEDE';
+  tabActivo = isRaul ? 'raul' : 'fede';
+  renderPrincipal();
+}
+
+async function fetchTicker(ticker) {
+  try {
+    // Datos del día: precio actual, anterior, variación
+    const urlDay = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1mo`;
+    const r = await fetch(urlDay);
+    const d = await r.json();
+    const meta = d?.chart?.result?.[0]?.meta;
+    const quotes = d?.chart?.result?.[0]?.indicators?.quote?.[0];
+    const timestamps = d?.chart?.result?.[0]?.timestamp;
+    const closes = quotes?.close;
+
+    if (!meta || !closes) return null;
+
+    const current = meta.regularMarketPrice;
+    const prev = meta.chartPreviousClose;
+    const change = prev ? ((current - prev) / prev) * 100 : 0;
+
+    // Filtrar nulls
+    const validCloses = closes.filter(v => v !== null && v !== undefined);
+    const n = validCloses.length;
+
+    // Períodos (dias de mercado aprox)
+    const close5d  = n >= 6  ? validCloses[n - 6]  : null;
+    const close15d = n >= 11 ? validCloses[n - 11] : null;
+    const close1m  = validCloses[0];
+
+    const pct5d  = close5d  ? ((current - close5d)  / close5d)  * 100 : null;
+    const pct15d = close15d ? ((current - close15d) / close15d) * 100 : null;
+    const pct1m  = close1m  ? ((current - close1m)  / close1m)  * 100 : null;
+
+    // Máximo del año
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const urlYear = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&period1=${Math.floor(startOfYear/1000)}&period2=${Math.floor(now/1000)}`;
+    const ry = await fetch(urlYear);
+    const dy = await ry.json();
+    const yearCloses = dy?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v => v) || [];
+    const maxYear = yearCloses.length ? Math.max(...yearCloses) : null;
+    const avgYear = yearCloses.length ? yearCloses.reduce((a,b) => a+b, 0) / yearCloses.length : null;
+
+    return { ticker, current, prev, change, pct5d, pct15d, pct1m, maxYear, avgYear };
+  } catch(e) { return null; }
+}
+
+async function cargar() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('loading');
+  document.getElementById('resumen').innerHTML = skResumen();
+  document.getElementById('tabla-principal').innerHTML = skTabla();
+  document.getElementById('tabla-oport').innerHTML = skTabla();
+  document.getElementById('last-update').textContent = 'Actualizando...';
+
+  // Fetch todas las carteras en paralelo
+  const [fede, raul, oport] = await Promise.all([
+    Promise.all(CARTERAS.fede.map(fetchTicker)),
+    Promise.all(CARTERAS.raul.map(fetchTicker)),
+    Promise.all(CARTERAS.oport.map(fetchTicker))
+  ]);
+
+  datos = {
+    fede: fede.filter(Boolean),
+    raul: raul.filter(Boolean),
+    oport: oport.filter(Boolean)
+  };
+
+  renderPrincipal();
+  renderOport();
+
+  const now = new Date();
+  document.getElementById('last-update').textContent =
+    `Última actualización: ${now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})} hs`;
+  document.getElementById('ts').textContent =
+    `Yahoo Finance · precios en USD · umbral ±${UMBRAL}% · ${now.toLocaleDateString('es-AR')}`;
+  btn.classList.remove('loading');
+}
+
+function renderPrincipal() {
+  const arr = datos[tabActivo];
+  if (!arr || !arr.length) return;
+
+  const suben  = arr.filter(d => d.change >= UMBRAL).length;
+  const bajan  = arr.filter(d => d.change <= -UMBRAL).length;
+  const rango  = arr.length - suben - bajan;
+
+  document.getElementById('resumen').innerHTML = `
+    <div class="res-card up"><div class="res-label">SUBEN +${UMBRAL}%</div><div class="res-num">${suben}</div></div>
+    <div class="res-card down"><div class="res-label">BAJAN -${UMBRAL}%</div><div class="res-num">${bajan}</div></div>
+    <div class="res-card neutral"><div class="res-label">EN RANGO</div><div class="res-num">${rango}</div></div>
+  `;
+
+  const sorted = [...arr].sort((a,b) => b.change - a.change);
+  document.getElementById('tabla-principal').innerHTML = buildTable(sorted);
+}
+
+function renderOport() {
+  const arr = datos.oport.filter(Boolean);
+  if (!arr.length) {
+    document.getElementById('tabla-oport').innerHTML = `<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted2);">Sin datos disponibles</div>`;
+    return;
+  }
+  const sorted = [...arr].sort((a,b) => b.change - a.change);
+  document.getElementById('tabla-oport').innerHTML = buildTable(sorted);
+}
+
+function buildTable(arr) {
+  const fmt = (n, dec=2) => n != null ? n.toFixed(dec) : '—';
+  const fmtP = (n) => {
+    if (n == null) return `<span class="neutral-text">—</span>`;
+    const cls = n >= 0 ? 'up-text' : 'down-text';
+    return `<span class="${cls}">${n >= 0 ? '+' : ''}${fmt(n)}%</span>`;
+  };
+  const fmtUSD = (n) => n != null ? `$${n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+
+  const rows = arr.map(d => {
+    const dir = d.change >= UMBRAL ? 'up' : d.change <= -UMBRAL ? 'down' : 'neutral';
+    const arrow = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '●';
+    return `<tr>
+      <td>${d.ticker}</td>
+      <td><span class="badge ${dir}">${arrow}</span></td>
+      <td class="${dir === 'up' ? 'up-text' : dir === 'down' ? 'down-text' : 'neutral-text'}">${d.change >= 0 ? '+' : ''}${fmt(d.change)}%</td>
+      <td style="color:var(--text);">${fmtUSD(d.current)}</td>
+      <td>${fmtP(d.pct5d)}</td>
+      <td>${fmtP(d.pct15d)}</td>
+      <td>${fmtP(d.pct1m)}</td>
+      <td style="color:var(--muted2);">${fmtUSD(d.maxYear)}</td>
+      <td style="color:var(--muted2);">${fmtUSD(d.avgYear)}</td>
+    </tr>`;
+  }).join('');
+
+  return `<table>
+    <thead><tr>
+      <th>TICKER</th>
+      <th>HOY</th>
+      <th>VAR %</th>
+      <th>PRECIO</th>
+      <th>5D</th>
+      <th>15D</th>
+      <th>1M</th>
+      <th>MÁX AÑO</th>
+      <th>PROM YTD</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function skResumen() {
+  return Array(3).fill(`<div class="res-card neutral">
+    <div class="sk" style="height:10px;width:60px;margin-bottom:10px;"></div>
+    <div class="sk" style="height:26px;width:28px;"></div>
+  </div>`).join('');
+}
+
+function skTabla() {
+  return `<table><thead><tr>${Array(9).fill('<th>·</th>').join('')}</tr></thead><tbody>
+    ${Array(5).fill(`<tr>${Array(9).fill('<td><span class="sk" style="height:12px;width:50px;"></span></td>').join('')}</tr>`).join('')}
+  </tbody></table>`;
+}
+
+cargar();
+</script>
+</body>
+</html>
